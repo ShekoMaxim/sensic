@@ -4,7 +4,7 @@ import {
   NavLink,
   HashRouter
 } from "react-router-dom";
-import ExcelTable from "./Components/ExcelTable";
+import TablePage from "./Components/TablePage";
 import GetSheetDone from 'get-sheet-done';
 import './App.css';
 
@@ -16,7 +16,7 @@ class App extends Component {
         <div className="App">
 
           <div className="App-intro">
-            <Route exact path="/" component={ExcelTable} />
+            <Route exact path="/" component={TablePage} />
           </div>
         </div>
       </HashRouter>
