@@ -1,8 +1,11 @@
 import React, { PureComponent } from 'react';
 import GetSheetDone from 'get-sheet-done';
-import Hammer from 'hammerjs'
-
+import Hammer from 'hammerjs';
+import injectTapEventPlugin from "react-tap-event-plugin";
+import isDblTouchTap from "./isDblTouchTap"
 import './index.css';
+injectTapEventPlugin()
+
 
 class ExcelTable extends PureComponent {
     constructor() {
@@ -22,8 +25,10 @@ class ExcelTable extends PureComponent {
         this.handleNextClick = this.handleNextClick.bind(this);
         this.handlePrevClick = this.handlePrevClick.bind(this);
     }
+
     handleRowClick(e) {
         console.log(e.target)
+        console.log(e.target.closest('tr'))
     }
 
     handlePrevClick() {
@@ -66,7 +71,6 @@ class ExcelTable extends PureComponent {
     }
 
     componentDidMount() {
-        console.log("GetSheetDone")
         GetSheetDone.raw("1UONP_r47sQErBRmgTuZj_axW5Q_5pNFu5XZHMOPYzMQ").then(sheet => {
             let rows = sheet.data.filter(x => x)
             for (let i = 2; i < rows.length; i++) {
@@ -82,13 +86,25 @@ class ExcelTable extends PureComponent {
                 rowSecondLabel: sheet.data.filter(x => x)[1].filter(x => x)
             })
         })
+        var el = document.querySelectorAll('tr');
+        console.log(el);
+        var list = []
+        el.forEach(function (tr) {
+            console.log(tr)
+            list.push(new Hammer(tr, {
+                domEvents: true
+            }));
+        })
+        list.map(x => x.on("press", function (ev) {
+            console.log(ev.type + " gesture detected.");
+        }))
     }
 
 
     render() {
         return (
             <div className="content" >
-                <table className="table_col" onClick={(e) => this.handleNextClick(e)}>
+                <table className="table_col" onTouchTap={(e) => this.handleNextClick(e)}>
                     <thead>
                         <tr>
                             {this.state.firstBuild && <th colSpan="3">{this.state.rowLabel[0]}</th>}
@@ -111,7 +127,11 @@ class ExcelTable extends PureComponent {
                     <tbody>
                         {this.state.rows.map((row, index) => {
                             if (index > 1) {
-                                return <tr key={index} onClick={(e) => this.handleRowClick(e)}>
+                                return <tr key={index} value={row} onTouchTap={(e) => {
+                                    if (isDblTouchTap(e)) {
+                                        console.log("Double tap", e.target)
+                                    }
+                                }} >
                                     {row.map((cell, ind) => {
                                         if (this.state.firstBuild && ind < 3) {
                                             return <td key={ind} >{cell}</td>
@@ -137,13 +157,13 @@ class ExcelTable extends PureComponent {
                     <div className='set blue'>
                         <a
                             className={!this.state.acivePrevButton ? ' hide_button' : 'btn sec ico'}
-                            onClick={(e) => this.handlePrevClick(e)}
+                            onTouchTap={(e) => this.handlePrevClick(e)}
                         >
                             Prev build
                             </a>
                         <a
                             className={!this.state.aciveNextButton ? ' hide_button' : 'btn pri ico'}
-                            onClick={(e) => this.handleNextClick(e)}
+                            onTouchTap={(e) => this.handleNextClick(e)}
                         >
                             Next build
                             </a>
