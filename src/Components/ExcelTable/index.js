@@ -32,6 +32,7 @@ class ExcelTable extends PureComponent {
     }
 
     handlePrevClick() {
+        console.log("handlePrevClick")
         if (this.state.finalBuild) {
             this.setState({
                 finalBuild: false,
@@ -47,7 +48,9 @@ class ExcelTable extends PureComponent {
         }
 
     }
+
     handleNextClick() {
+        console.log("handleNextClick")
         if (this.state.firstBuild) {
             if (this.state.secondBuild) {
                 if (this.state.thirdBuild) {
@@ -95,8 +98,9 @@ class ExcelTable extends PureComponent {
                 domEvents: true
             }));
         })
-        list.map(x => x.on("press", function (ev) {
-            console.log(ev.type + " gesture detected.");
+        list.map(x => x.on("press", function (e) {
+            console.log(e + " gesture detected.");
+            e.srcEvent.stopImmediatePropagation();
         }))
     }
 
@@ -106,13 +110,17 @@ class ExcelTable extends PureComponent {
             <div className="content" >
                 <table className="table_col" onTouchTap={(e) => this.handleNextClick(e)}>
                     <thead>
-                        <tr>
+                        <tr onTouchTap={(e) => {
+                            console.log(e.type + "onTouchTap");
+                        }} >
                             {this.state.firstBuild && <th colSpan="3">{this.state.rowLabel[0]}</th>}
                             {this.state.secondBuild && <th colSpan="3">{this.state.rowLabel[1]}</th>}
                             {this.state.thirdBuild && <th colSpan="2">{this.state.rowLabel[2]}</th>}
                             {this.state.finalBuild && <th colSpan="2">{this.state.rowLabel[3]}</th>}
                         </tr>
-                        <tr colSpan="3">
+                        <tr colSpan="3" onTouchTap={(e) => {
+                            console.log(e.type + "onTouchTap");
+                        }}>
                             {this.state.firstBuild && <th >{this.state.rowSecondLabel[0]}</th>}
                             {this.state.firstBuild && <th >{this.state.rowSecondLabel[1]}</th>}
                             {this.state.firstBuild && <th >{this.state.rowSecondLabel[2]}</th>}
@@ -128,9 +136,8 @@ class ExcelTable extends PureComponent {
                         {this.state.rows.map((row, index) => {
                             if (index > 1) {
                                 return <tr key={index} value={row} onTouchTap={(e) => {
-                                    if (isDblTouchTap(e)) {
-                                        console.log("Double tap", e.target)
-                                    }
+                                    console.log(e.type + "onTouchTap");
+                                    e.preventDefault();
                                 }} >
                                     {row.map((cell, ind) => {
                                         if (this.state.firstBuild && ind < 3) {
