@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import GetSheetDone from 'get-sheet-done';
-import Hammer from 'hammerjs';
+import Hammer from'react-hammerjs';
+import propagating from 'propagating-hammerjs'
 import injectTapEventPlugin from "react-tap-event-plugin";
 import isDblTouchTap from "./isDblTouchTap"
 import './index.css';
@@ -17,6 +18,8 @@ class ExcelTable extends PureComponent {
             finalBuild: false,
             acivePrevButton: false,
             aciveNextButton: true,
+            activeRow:false,
+            toggleClickTable:false,
             rows: [],
             rowLabel: [],
             rowSecondLabel: [],
@@ -27,8 +30,22 @@ class ExcelTable extends PureComponent {
     }
 
     handleRowClick(e) {
-        console.log(e.target)
+      if(!this.state.toggleClickTable) {
+        if (document.getElementsByClassName("active")[0]) {
+          let active = document.getElementsByClassName("active")[0]
+          console.log("className", active);
+          active.classList.remove('active');
+          console.log("className", active);
+          e.target.closest('tr').className = 'active';
+        } else {
+          e.target.closest('tr').className = 'active';
+        }
         console.log(e.target.closest('tr'))
+        this.setState({toggleClickTable: false})
+      } else {
+        this.setState({toggleClickTable: false})
+      }
+
     }
 
     handlePrevClick() {
@@ -46,10 +63,9 @@ class ExcelTable extends PureComponent {
                 acivePrevButton: false
             });
         }
-
     }
 
-    handleNextClick() {
+    handleNextClick(e) {
         console.log("handleNextClick")
         if (this.state.firstBuild) {
             if (this.state.secondBuild) {
@@ -71,6 +87,7 @@ class ExcelTable extends PureComponent {
                 });
             }
         }
+      this.setState({toggleClickTable: true})
     }
 
     componentDidMount() {
@@ -89,38 +106,43 @@ class ExcelTable extends PureComponent {
                 rowSecondLabel: sheet.data.filter(x => x)[1].filter(x => x)
             })
         })
-        var el = document.querySelectorAll('tr');
-        console.log(el);
-        var list = []
-        el.forEach(function (tr) {
-            console.log(tr)
-            list.push(new Hammer(tr, {
-                domEvents: true
-            }));
-        })
-        list.map(x => x.on("press", function (e) {
-            console.log(e + " gesture detected.");
-            e.srcEvent.stopImmediatePropagation();
-        }))
+        // var el = document.querySelectorAll('tr');
+        // console.log(el);
+        // var list = []
+        // el.forEach(function (tr) {
+        //     console.log(tr)
+        //     list.push(new Hammer(tr, {
+        //         domEvents: true
+        //     }));
+        // })
+        // list.map(x => x.on("press", function (event) {
+        //   console.log(event + " gesture detected.");
+        //   // event.stopPropagation();
+        //   // event.preventDefault();
+        //   // event.gesture.stopPropagation();
+        //   // event.gesture.preventDefault();
+        //   // event.gesture.srcEvent.stopPropagation();
+        //   // event.gesture.srcEvent.preventDefault();
+        //   // event.gesture.startEvent.stopPropagation();
+        //   // event.gesture.startEvent.preventDefault();
+        //
+        // }))
     }
 
 
     render() {
         return (
             <div className="content" >
-                <table className="table_col" onTouchTap={(e) => this.handleNextClick(e)}>
+                <Hammer onTap={(e) => this.handleNextClick(e)} >
+                <table className="table_col table" >
                     <thead>
-                        <tr onTouchTap={(e) => {
-                            console.log(e.type + "onTouchTap");
-                        }} >
+                        <tr onTouchTap={(e) => this.handleRowClick(e) }>
                             {this.state.firstBuild && <th colSpan="3">{this.state.rowLabel[0]}</th>}
                             {this.state.secondBuild && <th colSpan="3">{this.state.rowLabel[1]}</th>}
                             {this.state.thirdBuild && <th colSpan="2">{this.state.rowLabel[2]}</th>}
                             {this.state.finalBuild && <th colSpan="2">{this.state.rowLabel[3]}</th>}
                         </tr>
-                        <tr colSpan="3" onTouchTap={(e) => {
-                            console.log(e.type + "onTouchTap");
-                        }}>
+                        <tr colSpan="3" onTouchTap={(e) => this.handleRowClick(e)}>
                             {this.state.firstBuild && <th >{this.state.rowSecondLabel[0]}</th>}
                             {this.state.firstBuild && <th >{this.state.rowSecondLabel[1]}</th>}
                             {this.state.firstBuild && <th >{this.state.rowSecondLabel[2]}</th>}
@@ -135,10 +157,7 @@ class ExcelTable extends PureComponent {
                     <tbody>
                         {this.state.rows.map((row, index) => {
                             if (index > 1) {
-                                return <tr key={index} value={row} onTouchTap={(e) => {
-                                    console.log(e.type + "onTouchTap");
-                                    e.preventDefault();
-                                }} >
+                                return <tr key={index} value={row} onTouchTap={(e) => this.handleRowClick(e)} >
                                     {row.map((cell, ind) => {
                                         if (this.state.firstBuild && ind < 3) {
                                             return <td key={ind} >{cell}</td>
@@ -160,6 +179,7 @@ class ExcelTable extends PureComponent {
                         )}
                     </tbody>
                 </table>
+                </Hammer>
                 <div className="buttons">
                     <div className='set blue'>
                         <a
