@@ -1,10 +1,9 @@
 import React, { PureComponent } from 'react';
 import GetSheetDone from 'get-sheet-done';
-import Hammer from'react-hammerjs';
-import propagating from 'propagating-hammerjs'
 import injectTapEventPlugin from "react-tap-event-plugin";
 import isDblTouchTap from "./isDblTouchTap"
 import './index.css';
+import Hammer from 'hammerjs'
 injectTapEventPlugin()
 
 
@@ -18,8 +17,8 @@ class ExcelTable extends PureComponent {
             finalBuild: false,
             acivePrevButton: false,
             aciveNextButton: true,
-            activeRow:false,
-            toggleClickTable:false,
+            activeRow: false,
+            toggleClickTable: false,
             rows: [],
             rowLabel: [],
             rowSecondLabel: [],
@@ -30,21 +29,23 @@ class ExcelTable extends PureComponent {
     }
 
     handleRowClick(e) {
-      if(!this.state.toggleClickTable) {
-        if (document.getElementsByClassName("active")[0]) {
-          let active = document.getElementsByClassName("active")[0]
-          console.log("className", active);
-          active.classList.remove('active');
-          console.log("className", active);
-          e.target.closest('tr').className = 'active';
+        console.log("handleRowClick")
+        if (!this.state.toggleClickTable) {
+            if (e.target.closest('tr').className === 'active') {
+                e.target.closest('tr').classList.remove('active');
+            } else {
+                if (document.getElementsByClassName("active")[0]) {
+                    let active = document.getElementsByClassName("active")[0]
+                    active.classList.remove('active');
+                    e.target.closest('tr').className = 'active';
+                } else {
+                    e.target.closest('tr').className = 'active';
+                }
+            }
+            this.setState({ toggleClickTable: false })
         } else {
-          e.target.closest('tr').className = 'active';
+            this.setState({ toggleClickTable: false })
         }
-        console.log(e.target.closest('tr'))
-        this.setState({toggleClickTable: false})
-      } else {
-        this.setState({toggleClickTable: false})
-      }
 
     }
 
@@ -87,7 +88,32 @@ class ExcelTable extends PureComponent {
                 });
             }
         }
-      this.setState({toggleClickTable: true})
+        this.setState({ toggleClickTable: true })
+    }
+
+    handleNextTap = (e) => {
+        console.log("handleNextClick")
+        if (this.state.firstBuild) {
+            if (this.state.secondBuild) {
+                if (this.state.thirdBuild) {
+                    if (this.state.finalBuild) {
+                    } else {
+                        this.setState({
+                            finalBuild: true,
+                            aciveNextButton: false
+                        });
+                    }
+                } else {
+                    this.setState({ thirdBuild: true });
+                }
+            } else {
+                this.setState({
+                    secondBuild: true,
+                    acivePrevButton: true
+                });
+            }
+        }
+        this.setState({ toggleClickTable: true })
     }
 
     componentDidMount() {
@@ -106,8 +132,15 @@ class ExcelTable extends PureComponent {
                 rowSecondLabel: sheet.data.filter(x => x)[1].filter(x => x)
             })
         })
+        var table = document.getElementById('table')
+        var mc = new Hammer.Manager(table);
+        mc.add(new Hammer.Tap({ event: 'singletap' }));
+        mc.on("singletap", (ev) => {
+            this.handleNextClick(ev);
+            console.log(ev.type + " ");
+        });
         // var el = document.querySelectorAll('tr');
-        // console.log(el);
+        console.log("table", mc);
         // var list = []
         // el.forEach(function (tr) {
         //     console.log(tr)
@@ -116,16 +149,16 @@ class ExcelTable extends PureComponent {
         //     }));
         // })
         // list.map(x => x.on("press", function (event) {
-        //   console.log(event + " gesture detected.");
-        //   // event.stopPropagation();
-        //   // event.preventDefault();
-        //   // event.gesture.stopPropagation();
-        //   // event.gesture.preventDefault();
-        //   // event.gesture.srcEvent.stopPropagation();
-        //   // event.gesture.srcEvent.preventDefault();
-        //   // event.gesture.startEvent.stopPropagation();
-        //   // event.gesture.startEvent.preventDefault();
-        //
+        //     console.log(event + " gesture detected.");
+        //     // event.stopPropagation();
+        //     // event.preventDefault();
+        //     // event.gesture.stopPropagation();
+        //     // event.gesture.preventDefault();
+        //     // event.gesture.srcEvent.stopPropagation();
+        //     // event.gesture.srcEvent.preventDefault();
+        //     // event.gesture.startEvent.stopPropagation();
+        //     // event.gesture.startEvent.preventDefault();
+
         // }))
     }
 
@@ -133,10 +166,14 @@ class ExcelTable extends PureComponent {
     render() {
         return (
             <div className="content" >
-                <Hammer onTap={(e) => this.handleNextClick(e)} >
-                <table className="table_col table" >
+                {/* <Hammer onPinch={(e) => { }} options={{
+                    recognizers: {
+                        pinch: { enable: false }
+                    }
+                }} onTap={(e) => this.handleNextClick(e)} > */}
+                <table id="table" className="table_col table" >
                     <thead>
-                        <tr onTouchTap={(e) => this.handleRowClick(e) }>
+                        <tr onTouchTap={(e) => this.handleRowClick(e)}>
                             {this.state.firstBuild && <th colSpan="3">{this.state.rowLabel[0]}</th>}
                             {this.state.secondBuild && <th colSpan="3">{this.state.rowLabel[1]}</th>}
                             {this.state.thirdBuild && <th colSpan="2">{this.state.rowLabel[2]}</th>}
@@ -179,7 +216,7 @@ class ExcelTable extends PureComponent {
                         )}
                     </tbody>
                 </table>
-                </Hammer>
+                {/* </Hammer> */}
                 <div className="buttons">
                     <div className='set blue'>
                         <a
